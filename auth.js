@@ -143,7 +143,7 @@ firebase.auth().onAuthStateChanged(async (user) => {
     // Redirect only if on protected pages (like index1.html)
     const path = window.location.pathname;
     const isLogin = path.includes("login.html");
-    const isSignup = path.includes("signup.html");
+    const isSignup = path.includes("index.html");
 
     if (!isLogin && !isSignup) {
       window.location.href = "login.html";
