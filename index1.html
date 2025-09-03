@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Trainer Feedback Report</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 24px;
+    }
+
+    .card {
+      max-width: 1000px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      text-align: center;
+      margin: 0 0 16px;
+    }
+
+    /* Greeting styling */
+    #greeting {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 16px;
+      text-align: right;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .row>* {
+      flex: 1;
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #2575fc;
+      color: #fff;
+      cursor: pointer;
+      min-width: 120px;
+    }
+
+    .btn.secondary {
+      background: #6b7280;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #questionList {
+      margin-top: 12px;
+    }
+
+    .question-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 6px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .question-text {
+      flex: 1;
+      word-break: break-word;
+    }
+
+    .action-btn {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .action-btn:hover {
+      opacity: 0.95;
+    }
+
+    .question-block {
+      margin-top: 18px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    th,
+    td {
+      border: 1px solid #e6eaf0;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #f3f6ff;
+      font-weight: 600;
+    }
+
+    #output {
+      margin-top: 18px;
+    }
+
+    #summaryOutput {
+      margin-top: 18px;
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    /* dropzone styling */
+    .dropzone {
+      border: 2px dashed #3b82f6;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      color: #1e40af;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      margin-top: 8px;
+    }
+
+    .dropzone.dragover {
+      background: #eff6ff;
+      border-color: #2563eb;
+    }
+
+    .dropzone p {
+      margin: 0;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <!-- Greeting -->
+    <div id="greeting">Hi, Guest</div>
+    <button onclick="logout()" style="
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #e63946;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+  ">
+    <i class="fa-solid fa-right-from-bracket"></i> Logout
+  </button>
+
+    <h2>Trainer Feedback Report</h2>
+
+    <label>Upload Excel File (.xlsx)</label>
+    <div id="dropzone" class="dropzone">
+      <p>Drag & drop your file here, or click to select</p>
+      <input id="file" type="file" accept=".xlsx,.xls" hidden>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <button id="parseBtn" class="btn">Parse & Preview</button>
+      <button id="pdfBtn" class="btn" disabled hidden>Generate PDF</button>
+      <button id="refreshQuestionsBtn" class="btn secondary">Refresh Questions</button>
+    </div>
+
+    <!-- Single trainer box -->
+    <div id="singleTrainerBox" style="display:none; margin-top:10px;">
+      <label for="singleTrainerName">Trainer Name:</label>
+      <input type="text" id="singleTrainerName" placeholder="Enter trainer name" />
+      <button id="confirmTrainerBtn" class="action-btn" type="button" style="margin-top: 10px;">Confirm & Preview</button>
+    </div>
+
+    <!-- Where download buttons will appear -->
+    <div id="trainerReports"></div>
+
+    <hr style="margin:18px 0">
+
+    <label>Manage Questions</label>
+    <div style="display:flex; gap:12px; margin-top:8px;">
+      <input id="newQuestion" type="text" placeholder="Type a new feedback question">
+      <button id="addQuestionBtn" class="btn">Add Question</button>
+    </div>
+
+    <div id="questionList" style="margin-top:12px;"></div>
+
+    <div id="output"></div>
+    <div id="summaryOutput"></div>
+  </div>
+
+
+</div>
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- Google GenAI SDK (browser build) -->
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+   <script src="auth.js"></script>
+  <script type="module" src="./script.js"></script>
+
+  <!-- Greeting script -->
+  
+  <!-- Dropzone script -->
+  <script>
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("file");
+
+    function showFileName(file) {
+      dropzone.querySelector("p").textContent = `Selected file: ${file.name}`;
+    }
+
+    dropzone.addEventListener("click", () => fileInput.click());
+
+    dropzone.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
+
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+
+    dropzone.addEventListener("drop", e => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer.files.length) {
+        const file = e.dataTransfer.files[0];
+        fileInput.files = e.dataTransfer.files;
+        showFileName(file);
+        if (typeof handleFile === "function") handleFile(file);
+      }
+    });
+
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length) {
+        const file = fileInput.files[0];
+        showFileName(file);
+        if (typeof handleFile === "function") handleFile(file);
+      }
+    });
+  </script>
+</body>
+</html>

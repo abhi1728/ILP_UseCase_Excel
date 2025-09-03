@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ILP Feedback Report</title>
+<style>
+  button {
+      width: 10%; padding: 13px; margin-top: 12px; border: none; border-radius: 8px;
+      height: 8%;
+      background: #6a11cb; color: #fff; font-size: 14px; cursor: pointer; font-weight: 700;
+    }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #fff;
+    margin: 0;
+    padding: 20px 40px;
+    color: #222;
+    line-height: 1.5;
+  }
+  .header {
+    background: linear-gradient(135deg, #6a1b9a, #8e24aa);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    padding: 15px;
+    font-size: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    font-size: 14px;
+  }
+  .info-table th, .info-table td {
+    border: 1px solid #333;
+    padding: 10px;
+    text-align: center;
+  }
+  .info-table th {
+    background: #f2f2f2;
+    font-weight: bold;
+  }
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 13px;
+    text-align: center;
+  }
+  .matrix-table th {
+    background: #8d5ca6;
+    color: white;
+    border: 1px solid #444;
+    padding: 10px;
+    font-weight: 600;
+  }
+  .matrix-table td {
+    border: 1px solid #444;
+    padding: 0;
+  }
+  .cell-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .cell-table td {
+    border: none;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  .cell-label {
+    border-right: 2px solid #000;
+    text-align: left;
+    font-weight: 500;
+    color: #4a148c;
+    width: 70%;
+  }
+  .cell-count {
+    text-align: center;
+    font-weight: bold;
+    color: #000;
+    width: 30%;
+  }
+  .section-title {
+    background: #8d5ca6;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 25px;
+    margin-bottom: 8px;
+  }
+  .comments {
+    border: 1.5px solid #999;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    background: #fafafa;
+    border-radius: 4px;
+  }
+  .comments p {
+    margin: 6px 0;
+  }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+     <button id="pdfBtn" class="download-btn">Download PDF</button>
+  <div id="reportContent">
+
+<div class="header">
+  ILP - Feedback — <span id="trainerName">Trainer</span>
+</div>
+
+<table class="info-table">
+  <tr>
+    <th>Batch Name</th>
+    <th>Total Trainee Count</th>
+    <th>Trainer Name</th>
+    <th>Overall Program Rating — Out of 5</th>
+  </tr>
+  <tr>
+    <td id="batchName">Batch Placeholder</td>
+    <td id="traineeCount">0</td>
+    <td id="trainerNameTable">Trainer</td>
+    <td id="overallRating">0</td>
+  </tr>
+</table>
+
+<table class="matrix-table" id="feedbackMatrix"></table>
+
+<div class="section-title">What went well / things you most liked about the program (Comments by trainees)</div>
+<div class="comments" id="wentWell"></div>
+
+<div class="section-title">What needs improvement / things you less liked about the program (Comments by trainees)</div>
+<div class="comments" id="needsImprovement"></div>
+</div>
+<!-- Add this library once in your HTML head or before script.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+function fillReport(trainerName, batchName, traineeCount, overallRating, questionsData, summary) {
+  document.getElementById("trainerName").textContent = trainerName;
+  document.getElementById("batchName").textContent = batchName;
+  document.getElementById("traineeCount").textContent = traineeCount;
+  document.getElementById("trainerNameTable").textContent = trainerName;
+  document.getElementById("overallRating").textContent = overallRating;
+
+  const matrix = document.getElementById("feedbackMatrix");
+  matrix.innerHTML = "";
+
+  // Header row
+  const headerRow = document.createElement("tr");
+  questionsData.forEach(q => {
+    const th = document.createElement("th");
+    th.textContent = q.question;
+    headerRow.appendChild(th);
+  });
+  matrix.appendChild(headerRow);
+
+  // Rating rows
+  const ratingOrder = ["Excellent", "Very Good", "Good", "Average", "Poor"];
+  ratingOrder.forEach(rating => {
+    const row = document.createElement("tr");
+    questionsData.forEach(q => {
+      const td = document.createElement("td");
+      td.innerHTML = `
+        <table class="cell-table">
+          <tr>
+            <td class="cell-label">${rating}</td>
+            <td class="cell-count">${q.counts[rating] || 0}</td>
+          </tr>
+        </table>`;
+      row.appendChild(td);
+    });
+    matrix.appendChild(row);
+  });
+
+  // Total responded row
+  const totalRow = document.createElement("tr");
+  questionsData.forEach(q => {
+    const td = document.createElement("td");
+    td.innerHTML = `
+      <table class="cell-table">
+        <tr>
+          <td class="cell-label">Total responded</td>
+          <td class="cell-count">${q.responses || 0}</td>
+        </tr>
+      </table>`;
+    totalRow.appendChild(td);
+  });
+  matrix.appendChild(totalRow);
+
+  // Comments
+  document.getElementById("wentWell").innerHTML =
+    (summary.wentWell || "").split("\n").map(c => `<p>${c}</p>`).join("");
+  document.getElementById("needsImprovement").innerHTML =
+    (summary.needs || "").split("\n").map(c => `<p>${c}</p>`).join("");
+}
+
+function downloadReportAsPDF(trainerName) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p", "pt", "a4");
+
+  const element = document.getElementById("reportContent"); // ✅ only the report
+  const margin = 40;
+  const pageWidth = doc.internal.pageSize.getWidth() - margin * 2;
+
+  html2canvas(element, { scale: 2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let position = margin;
+    doc.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+
+    doc.save(`Trainer_Feedback_Report_${trainerName}.pdf`);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const data = JSON.parse(localStorage.getItem("trainerReportData") || "{}");
+  if (!data.trainerName) {
+    alert("No trainer data found!");
+    return;
+  }
+  fillReport(
+    data.trainerName,
+    data.batchName,
+    data.traineeCount,
+    data.overallRating,
+    data.questionsData,
+    data.summary
+  );
+
+  //const pdfBtn = document.createElement("button");
+  pdfBtn.textContent = "Download PDF";
+  pdfBtn.style.margin = "20px 0";
+  pdfBtn.onclick = () => downloadReportAsPDF(data.trainerName);
+  document.body.insertBefore(pdfBtn, document.body.firstChild);
+});
+</script>
+
+</body>
+</html>

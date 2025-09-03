@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+
+  <!-- Font Awesome (one version only) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  <style>
+    .password-wrapper { position: relative; }
+    .password-wrapper input { width: 100%; padding-right: 40px; }
+    .password-wrapper .toggle {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%); cursor: pointer; color: #6a11cb;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; margin: 0;
+      background-color: #f8f3ff;
+      /* background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='126' height='84' viewBox='0 0 126 84'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23264ed3' fill-opacity='0.17'%3E%3Cpath d='M126 83v1H0v-2h40V42H0v-2h40V0h2v40h40V0h2v40h40V0h2v83zm-2-1V42H84v40h40zM82 42H42v40h40V42zm-50-6a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm96 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm-42 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm30-12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM20 54a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm12 24a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM8 54a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm24 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM8 78a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm12 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm54 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM50 54a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm24 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM50 78a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm54-12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm12 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM92 54a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm24 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM92 78a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm24-42a4 4 0 1 1 0-8 4 4 0 0 1 0 8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); */
+    }
+    .container {
+      background: #fff; padding: 35px 28px; border-radius: 14px;
+      width: 360px; box-shadow: 0 8px 20px rgba(0,0,0,.18); animation: fadeIn .6s ease-in-out;
+    }
+    h2 { text-align: center; margin-bottom: 22px; color: #222; font-weight: 600; }
+    input {
+      width: 100%; padding: 12px 15px; margin: 12px 0; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 15px; transition: all .3s ease; box-sizing: border-box;
+    }
+    input:focus { border-color: #6a11cb; outline: none; box-shadow: 0 0 8px rgba(106,17,203,.4); }
+    button {
+      width: 100%; padding: 13px; margin-top: 12px; border: none; border-radius: 8px;
+      background: #6a11cb; color: #fff; font-size: 16px; cursor: pointer; font-weight: 500;
+      transition: background .3s ease, transform .15s ease;
+    }
+    button:hover { background: #5213a3; transform: translateY(-2px); }
+    #message { margin-top: 12px; text-align: center; font-size: 14px; color: red; }
+    #loader { display: none; text-align: center; margin-top: 12px; color: #6a11cb; font-size: 14px; }
+
+    p { text-align: center; margin-top: 18px; font-size: 14px; color: #444; }
+    p a { color: #6a11cb; text-decoration: none; font-weight: bold; }
+    p a:hover { text-decoration: underline; }
+
+    @keyframes fadeIn { from {opacity:0; transform: translateY(-20px);} to {opacity:1; transform: translateY(0);} }
+  </style>
+
+  <!-- Firebase v8 for auth.js (keep only once per page) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="auth.js"></script>
+</head>
+
+<body>
+  <!-- Single loader overlay (unique id) -->
+  <div id="pageLoader" style="
+    display:none; position:fixed; inset:0; background:rgba(255,255,255,.8);
+    display:flex; justify-content:center; align-items:center; z-index:9999; font-size:22px; color:#6a11cb;">
+    <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <div class="container">
+    <h2>Welcome Back</h2>
+
+    <input type="email" id="loginEmail" placeholder="Email" required>
+
+    <div class="password-wrapper">
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <i id="togglePassword" class="fa-solid fa-eye toggle" title="Show/Hide password"></i>
+    </div>
+
+    <button onclick="login()">Login</button>
+
+    <div id="loader"><i class="fa-solid fa-spinner fa-spin"></i> Signing in...</div>
+    <div id="message"></div>
+
+    <p>Don’t have an account? <a href="signup.html" onclick="goToSignup()">Sign Up</a></p>
+  </div>
+
+  <script>
+    // Hide page overlay on load
+    window.addEventListener("load", () => {
+      const overlay = document.getElementById("pageLoader");
+      if (overlay) overlay.style.display = "none";
+    });
+
+    function goToSignup() {
+      const overlay = document.getElementById("pageLoader");
+      overlay.style.display = "flex";
+      setTimeout(() => window.location.href = "signup.html", 600);
+    }
+
+    // Eye / eye-slash toggle
+    document.addEventListener("DOMContentLoaded", () => {
+      const icon = document.getElementById("togglePassword");
+      const input = document.getElementById("loginPassword");
+      if (!icon || !input) return;
+
+      icon.addEventListener("click", () => {
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        icon.classList.toggle("fa-eye", !show);
+        icon.classList.toggle("fa-eye-slash", show);
+      });
+    });
+  </script>
+</body>
+</html>
